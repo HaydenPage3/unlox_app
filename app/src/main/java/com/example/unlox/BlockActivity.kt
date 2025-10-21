@@ -1,12 +1,14 @@
 package com.example.unlox
 
-import android.app.AlertDialog
 import android.os.Bundle
-import android.view.View
+import android.view.Gravity
 import android.view.WindowManager
 import android.widget.Button
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
 
 class BlockActivity : AppCompatActivity() {
     private lateinit var prefs: AppPreferences
@@ -15,59 +17,108 @@ class BlockActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         prefs = AppPreferences(this)
 
-        // make full screen and keep above lock/other apps
+        // Make it full screen
         window.addFlags(
-            WindowManager.LayoutParams.FLAG_FULLSCREEN
-                    or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-                    or WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
-                    or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+            WindowManager.LayoutParams.FLAG_FULLSCREEN or
+                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
         )
 
-        val root = android.widget.LinearLayout(this).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setPadding(50, 150, 50, 50)
+        // Background container
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(0xFF121212.toInt()) // dark gray background
+            gravity = Gravity.CENTER
+            setPadding(40, 40, 40, 40)
+        }
+
+        // CardView for content
+        val card = CardView(this).apply {
+            radius = 40f
+            cardElevation = 12f
+            setCardBackgroundColor(0xff6CBDE9.toInt())
+            useCompatPadding = true
+            setContentPadding(60, 80, 60, 80)
         }
 
         val pkg = intent.getStringExtra("blocked_pkg") ?: "Blocked App"
+
+        val cardLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+        }
+
         val title = TextView(this).apply {
-            textSize = 22f
-            text = "This app is blocked:\n$pkg"
+            text = "Unlox"
+            textSize = 26f
+            setTextColor(0xFFFFFFFF.toInt())
+            gravity = Gravity.CENTER
         }
-        root.addView(title)
 
-        val info = TextView(this).apply {
-            text = "You chose to block this app. If this is an emergency, press 'Exit'."
-            setPadding(0,30,0,30)
-        }
-        root.addView(info)
-
-        val exitBtn = Button(this).apply {
-            text = "Exit"
-            setOnClickListener {
-                // Option: Allow temporary exit by user confirmation
-                AlertDialog.Builder(this@BlockActivity)
-                    .setTitle("Exit Block")
-                    .setMessage("Are you sure you want to exit the blocked app? This will open the app.")
-                    .setPositiveButton("Yes") { _, _ -> finish() }
-                    .setNegativeButton("No", null)
-                    .show()
+        val unloxImage = ImageView(this).apply {
+            setImageResource(R.drawable.unlox_fore)   // your image file
+            adjustViewBounds = true
+            scaleType = ImageView.ScaleType.CENTER_INSIDE
+            layoutParams = LinearLayout.LayoutParams(250, 250).apply {
+                bottomMargin = 40
+                gravity = Gravity.CENTER
             }
         }
-        root.addView(exitBtn)
 
-        val removeBlockBtn = Button(this).apply {
-            text = "Remove Block (one-time)"
+        val subtitle = TextView(this).apply {
+            text = "\n$pkg is blocked."
+            textSize = 16f
+            setTextColor(0xFF000000.toInt())
+            gravity = Gravity.CENTER
+        }
+
+        val message = TextView(this).apply {
+            text = ""//no text here on purpose -- add a message
+            textSize = 15f
+            setTextColor(0xFFAAAAAA.toInt())
+            gravity = Gravity.CENTER
+        }
+
+        val btnBack = Button(this).apply {
+            text = "Go Back"
+            textSize = 16f
+            setOnClickListener {
+                // Simply close this block screen
+                finish()
+            }
+        }
+
+        val btnUnblock = Button(this).apply {
+            text = "Unlox App"
+            textSize = 16f
             setOnClickListener {
                 prefs.removeBlocked(pkg)
                 finish()
             }
         }
-        root.addView(removeBlockBtn)
 
+        val btnLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            setPadding(0, 40, 0, 0)
+            addView(btnBack)
+            addView(btnUnblock)
+            btnBack.setPadding(40, 20, 40, 20)
+            btnUnblock.setPadding(40, 20, 40, 20)
+        }
+
+        cardLayout.addView(title)
+        cardLayout.addView(subtitle)
+        cardLayout.addView(unloxImage)
+        cardLayout.addView(message)
+        cardLayout.addView(btnLayout)
+        card.addView(cardLayout)
+
+        root.addView(card)
         setContentView(root)
     }
 
     override fun onBackPressed() {
-        // prevent back button from dismissing the block (optional)
+        // Prevent back press from bypassing the block
     }
 }
