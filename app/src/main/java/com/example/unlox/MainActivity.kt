@@ -1,47 +1,102 @@
 package com.example.unlox
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
+import android.text.InputType
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import android.app.AppOpsManager
-import android.content.Context
-import android.content.Intent
-import android.provider.Settings
-import android.widget.Toast
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var prefs: AppPreferences
+    private lateinit var listView: ListView
+    private lateinit var adapter: ArrayAdapter<String>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        prefs = AppPreferences(this)
 
-        showPopup()
-        if (!hasUsageAccessPermission()) {
-            // Ask the user to grant Usage Access
-            val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
-            startActivity(intent)
-            Toast.makeText(this, "Please grant Usage Access permission", Toast.LENGTH_LONG).show()
-        } else {
-            // Start monitoring service
-            val serviceIntent = Intent(this, AppMonitorService::class.java)
-            startService(serviceIntent)
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(24,24,24,24)
+        }
+
+        val help = TextView(this).apply {
+            text = "Grant Accessibility permission (required). Add package names to block (e.g. com.instagram.android)."
+        }
+        root.addView(help)
+
+
+        val openAccessibilityBtn = Button(this).apply {
+            text = "Open Accessibility Settings"
+            setOnClickListener {
+                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            }
+        }
+        root.addView(openAccessibilityBtn)
+
+        //Gives intent to apps
+        val openOverlayBtn = Button(this).apply {
+            text = "Request Display Over Other Apps"
+            setOnClickListener {
+                if (!Settings.canDrawOverlays(this@MainActivity)) {
+                    val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(this@MainActivity, "Overlay allowed", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        root.addView(openOverlayBtn)
+
+        val addBtn = Button(this).apply { text = "Add blocked package" }
+        root.addView(addBtn)
+
+        listView = ListView(this)
+        adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, prefs.getBlocked().toMutableList())
+        listView.adapter = adapter
+        root.addView(listView)
+
+        setContentView(root)
+
+        addBtn.setOnClickListener {
+            val input = EditText(this)
+            input.inputType = InputType.TYPE_CLASS_TEXT
+            AlertDialog.Builder(this)
+                .setTitle("Block package")
+                .setMessage("Enter full package name (e.g. com.facebook.katana)")
+                .setView(input)
+                .setPositiveButton("Add") { _, _ ->
+                    val pkg = input.text.toString().trim()
+                    if (pkg.isNotEmpty()) {
+                        prefs.addBlocked(pkg)
+                        refreshList()
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+
+        listView.setOnItemLongClickListener { _, _, pos, _ ->
+            val pkg = adapter.getItem(pos) ?: ""
+            AlertDialog.Builder(this)
+                .setTitle("Remove blocked package?")
+                .setMessage(pkg)
+                .setPositiveButton("Remove") { _, _ ->
+                    prefs.removeBlocked(pkg)
+                    refreshList()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+            true
         }
     }
 
-    private fun showPopup() {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Welcome")
-        builder.setMessage("Permissions:" + hasUsageAccessPermission())
-        builder.setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
-        builder.show()
-    }
-
-    private fun hasUsageAccessPermission(): Boolean {
-        val appOps = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-        val mode = appOps.checkOpNoThrow(
-            AppOpsManager.OPSTR_GET_USAGE_STATS,
-            android.os.Process.myUid(),
-            packageName
-        )
-        return mode == AppOpsManager.MODE_ALLOWED
+    private fun refreshList() {
+        adapter.clear()
+        adapter.addAll(prefs.getBlocked().toList())
+        adapter.notifyDataSetChanged()
     }
 }

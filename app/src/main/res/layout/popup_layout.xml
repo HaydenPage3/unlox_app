@@ -12,6 +12,12 @@
         android:layout_height="wrap_content"/>
 
     <Button
+        android:id="@+id/btnUsageStats"
+        android:text="View App Usage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
         android:id="@+id/close_button"
         android:text="Close"
         android:layout_width="wrap_content"

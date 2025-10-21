@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Unlox</string>
-
+    <string name="accessibility_service_description">We use your data plz</string>
 </resources>
