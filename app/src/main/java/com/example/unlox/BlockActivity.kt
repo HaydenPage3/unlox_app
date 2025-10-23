@@ -92,7 +92,7 @@ class BlockActivity : AppCompatActivity() {
             text = "Unlox App"
             textSize = 16f
             setOnClickListener {
-                prefs.removeBlocked(pkg)
+                prefs.removeAllowed(pkg)
                 finish()
             }
         }

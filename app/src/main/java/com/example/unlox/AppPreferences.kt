@@ -2,31 +2,31 @@ package com.example.unlox
 
 import android.content.Context
 
-class AppPreferences(private val ctx: Context) {
-    private val prefs = ctx.getSharedPreferences("app_blocker_prefs", Context.MODE_PRIVATE)
-    private val KEY_BLOCKED = "blocked_packages"
+class AppPreferences(context: Context) {
+    private val prefs = context.getSharedPreferences("app_blocker_prefs", Context.MODE_PRIVATE)
+    private val KEY_ALLOWED = "allowed_packages"
 
-    fun getBlocked(): MutableSet<String> {
-        return prefs.getStringSet(KEY_BLOCKED, emptySet())?.toMutableSet() ?: mutableSetOf()
+    fun getAllowed(): MutableSet<String> {
+        return prefs.getStringSet(KEY_ALLOWED, emptySet())?.toMutableSet() ?: mutableSetOf()
     }
 
-    fun setBlocked(set: Set<String>) {
-        prefs.edit().putStringSet(KEY_BLOCKED, set).apply()
+    fun setAllowed(set: Set<String>) {
+        prefs.edit().putStringSet(KEY_ALLOWED, set).apply()
     }
 
-    fun addBlocked(pkg: String) {
-        val s = getBlocked()
+    fun addAllowed(pkg: String) {
+        val s = getAllowed()
         s.add(pkg)
-        setBlocked(s)
+        setAllowed(s)
     }
 
-    fun removeBlocked(pkg: String) {
-        val s = getBlocked()
+    fun removeAllowed(pkg: String) {
+        val s = getAllowed()
         s.remove(pkg)
-        setBlocked(s)
+        setAllowed(s)
     }
 
-    fun isBlocked(pkg: String): Boolean {
-        return getBlocked().contains(pkg)
+    fun isAllowed(pkg: String): Boolean {
+        return getAllowed().contains(pkg)
     }
 }

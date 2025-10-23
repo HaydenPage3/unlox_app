@@ -1,33 +1,32 @@
 package com.example.unlox
 
 import android.content.Intent
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.text.InputType
 import android.widget.*
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
     private lateinit var prefs: AppPreferences
-    private lateinit var listView: ListView
-    private lateinit var adapter: ArrayAdapter<String>
+    private lateinit var container: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         prefs = AppPreferences(this)
 
-        val root = LinearLayout(this).apply {
+        val scroll = ScrollView(this)
+        container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(24,24,24,24)
+            setPadding(32, 32, 32, 32)
         }
 
-        val help = TextView(this).apply {
-            text = "Grant Accessibility permission (required). Add package names to block (e.g. com.instagram.android)."
+        val info = TextView(this).apply {
+            text = "All apps are blocked unless allowed below. Toggle apps to whitelist them."
         }
-        root.addView(help)
-
+        container.addView(info)
 
         val openAccessibilityBtn = Button(this).apply {
             text = "Open Accessibility Settings"
@@ -35,68 +34,76 @@ class MainActivity : AppCompatActivity() {
                 startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
             }
         }
-        root.addView(openAccessibilityBtn)
+        container.addView(openAccessibilityBtn)
 
-        //Gives intent to apps
         val openOverlayBtn = Button(this).apply {
-            text = "Request Display Over Other Apps"
+            text = "Allow Overlay Permission"
             setOnClickListener {
                 if (!Settings.canDrawOverlays(this@MainActivity)) {
-                    val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
+                    val intent = Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:$packageName")
+                    )
                     startActivity(intent)
                 } else {
-                    Toast.makeText(this@MainActivity, "Overlay allowed", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Overlay already granted", Toast.LENGTH_SHORT).show()
                 }
             }
         }
-        root.addView(openOverlayBtn)
+        container.addView(openOverlayBtn)
 
-        val addBtn = Button(this).apply { text = "Add blocked package" }
-        root.addView(addBtn)
+        scroll.addView(container)
+        setContentView(scroll)
 
-        listView = ListView(this)
-        adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, prefs.getBlocked().toMutableList())
-        listView.adapter = adapter
-        root.addView(listView)
+        loadInstalledApps()
+    }
 
-        setContentView(root)
+    private fun loadInstalledApps() {
+        container.removeAllViewsInLayout()
+        val pm = packageManager
+        val apps = pm.getInstalledApplications(PackageManager.GET_META_DATA)
+            .filter { pm.getLaunchIntentForPackage(it.packageName) != null } // only launchable apps
+            .sortedBy { it.loadLabel(pm).toString().lowercase() }
 
-        addBtn.setOnClickListener {
-            val input = EditText(this)
-            input.inputType = InputType.TYPE_CLASS_TEXT
-            AlertDialog.Builder(this)
-                .setTitle("Block package")
-                .setMessage("Enter full package name (e.g. com.facebook.katana)")
-                .setView(input)
-                .setPositiveButton("Add") { _, _ ->
-                    val pkg = input.text.toString().trim()
-                    if (pkg.isNotEmpty()) {
-                        prefs.addBlocked(pkg)
-                        refreshList()
-                    }
-                }
-                .setNegativeButton("Cancel", null)
-                .show()
-        }
-
-        listView.setOnItemLongClickListener { _, _, pos, _ ->
-            val pkg = adapter.getItem(pos) ?: ""
-            AlertDialog.Builder(this)
-                .setTitle("Remove blocked package?")
-                .setMessage(pkg)
-                .setPositiveButton("Remove") { _, _ ->
-                    prefs.removeBlocked(pkg)
-                    refreshList()
-                }
-                .setNegativeButton("Cancel", null)
-                .show()
-            true
+        for (app in apps) {
+            addAppToggle(app)
         }
     }
 
-    private fun refreshList() {
-        adapter.clear()
-        adapter.addAll(prefs.getBlocked().toList())
-        adapter.notifyDataSetChanged()
+    private fun addAppToggle(app: ApplicationInfo) {
+        val pm = packageManager
+        val appName = app.loadLabel(pm).toString()
+        val appIcon = app.loadIcon(pm)
+        val pkg = app.packageName
+        val isAllowed = prefs.isAllowed(pkg)
+
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, 12, 0, 12)
+        }
+
+        val iconView = ImageView(this).apply {
+            setImageDrawable(appIcon)
+            layoutParams = LinearLayout.LayoutParams(100, 100)
+        }
+
+        val label = TextView(this).apply {
+            text = appName
+            textSize = 16f
+            setPadding(16, 0, 0, 0)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+
+        val toggle = Switch(this).apply {
+            isChecked = isAllowed
+            setOnCheckedChangeListener { _, checked ->
+                if (checked) prefs.addAllowed(pkg) else prefs.removeAllowed(pkg)
+            }
+        }
+
+        layout.addView(iconView)
+        layout.addView(label)
+        layout.addView(toggle)
+        container.addView(layout)
     }
 }
