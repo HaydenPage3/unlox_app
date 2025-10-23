@@ -16,6 +16,7 @@ class BlockerAccessibilityService : AccessibilityService() {
         // adds unlox to the whitelist
         prefs.addAllowed("com.unloxapp.android")
         prefs.addAllowed("com.example.unlox")
+        prefs.addAllowed("com.google.android.inputmethod.latin")
         getLauncherPackage()?.let { prefs.addAllowed(it) }
         Log.d("BlockerService", "Accessibility service connected")
     }

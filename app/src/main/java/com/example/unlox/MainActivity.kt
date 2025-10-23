@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
         }
         root.addView(openOverlayBtn)
 
-        val addBtn = Button(this).apply { text = "Add blocked package" }
+        val addBtn = Button(this).apply { text = "Add allowed package" }
         root.addView(addBtn)
 
         listView = ListView(this)
