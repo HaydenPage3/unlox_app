@@ -27,16 +27,16 @@ class BlockActivity : AppCompatActivity() {
         // Background container
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(0xFF121212.toInt()) // dark gray background
+            setBackgroundColor(0xFF4A86E8.toInt()) // dark gray background
             gravity = Gravity.CENTER
             setPadding(40, 40, 40, 40)
         }
 
         // CardView for content
         val card = CardView(this).apply {
-            radius = 40f
-            cardElevation = 12f
-            setCardBackgroundColor(0xff6CBDE9.toInt())
+            radius = 30f
+            cardElevation = 0f
+            setCardBackgroundColor(0xFF4A86E8.toInt())
             useCompatPadding = true
             setContentPadding(60, 80, 60, 80)
         }
@@ -50,24 +50,25 @@ class BlockActivity : AppCompatActivity() {
 
         val title = TextView(this).apply {
             text = "Unlox"
-            textSize = 26f
+            textSize = 48f
             setTextColor(0xFFFFFFFF.toInt())
             gravity = Gravity.CENTER
         }
 
         val unloxImage = ImageView(this).apply {
-            setImageResource(R.drawable.unlox_fore)   // your image file
+            setImageResource(R.drawable.unlox_logo)   // your image file
             adjustViewBounds = true
             scaleType = ImageView.ScaleType.CENTER_INSIDE
-            layoutParams = LinearLayout.LayoutParams(250, 250).apply {
-                bottomMargin = 40
+            layoutParams = LinearLayout.LayoutParams(600, 600).apply {
+                topMargin = 20
+                bottomMargin = 20
                 gravity = Gravity.CENTER
             }
         }
 
         val subtitle = TextView(this).apply {
             text = "\n$pkg is blocked."
-            textSize = 16f
+            textSize = 18f
             setTextColor(0xFF000000.toInt())
             gravity = Gravity.CENTER
         }
