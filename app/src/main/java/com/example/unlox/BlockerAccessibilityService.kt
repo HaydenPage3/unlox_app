@@ -17,6 +17,7 @@ class BlockerAccessibilityService : AccessibilityService() {
         prefs.addAllowed("com.unloxapp.android")
         prefs.addAllowed("com.example.unlox")
         prefs.addAllowed("com.google.android.inputmethod.latin")
+        prefs.addAllowed("com.google.android.apps.nexuslauncher")
         getLauncherPackage()?.let { prefs.addAllowed(it) }
         Log.d("BlockerService", "Accessibility service connected")
     }

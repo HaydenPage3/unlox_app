@@ -9,6 +9,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import android.graphics.Typeface
 
 class BlockActivity : AppCompatActivity() {
     private lateinit var prefs: AppPreferences
@@ -51,6 +52,7 @@ class BlockActivity : AppCompatActivity() {
         val title = TextView(this).apply {
             text = "Unlox"
             textSize = 48f
+            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD) //font
             setTextColor(0xFFFFFFFF.toInt())
             gravity = Gravity.CENTER
         }
@@ -69,7 +71,7 @@ class BlockActivity : AppCompatActivity() {
         val subtitle = TextView(this).apply {
             text = "\n$pkg is blocked."
             textSize = 18f
-            setTextColor(0xFF000000.toInt())
+            setTextColor(0xFFFFFFFF.toInt())
             gravity = Gravity.CENTER
         }
 
@@ -83,15 +85,18 @@ class BlockActivity : AppCompatActivity() {
         val btnBack = Button(this).apply {
             text = "Go Back"
             textSize = 16f
+            setTextColor(0xFFFFFFFF.toInt())
             setOnClickListener {
                 // Simply close this block screen
                 finish()
             }
+
         }
 
         val btnUnblock = Button(this).apply {
             text = "Unlox App"
             textSize = 16f
+            setTextColor(0xFFFFFFFF.toInt())
             setOnClickListener {
                 prefs.removeAllowed(pkg)
                 finish()
