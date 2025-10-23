@@ -13,21 +13,31 @@ class BlockerAccessibilityService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         prefs = AppPreferences(this)
+        // adds unlox to the whitelist
+        prefs.addAllowed("com.unloxapp.android")
+        prefs.addAllowed("com.example.unlox")
+        getLauncherPackage()?.let { prefs.addAllowed(it) }
         Log.d("BlockerService", "Accessibility service connected")
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null) return
 
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
+            event.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+
             val pkg = event.packageName?.toString() ?: return
 
-            if (prefs.isBlocked(pkg)) {
-                // Always block, even if same app
-                showBlockScreen(pkg)
+            // Block if NOT in whitelist
+            if (!prefs.isAllowed(pkg)) {
+                if (lastShownPackage != pkg) {
+                    lastShownPackage = pkg
+                    showBlockScreen(pkg)
+                }
             } else {
-                // User switched away from blocked app
-                lastShownPackage = null
+                if (lastShownPackage == pkg) {
+                    lastShownPackage = null
+                }
             }
         }
     }
@@ -38,6 +48,13 @@ class BlockerAccessibilityService : AccessibilityService() {
             putExtra("blocked_pkg", pkg)
         }
         startActivity(intent)
+    }
+
+    private fun getLauncherPackage(): String? {
+        val intent = Intent(Intent.ACTION_MAIN)
+        intent.addCategory(Intent.CATEGORY_HOME)
+        val resolveInfo = packageManager.resolveActivity(intent, 0)
+        return resolveInfo?.activityInfo?.packageName
     }
 
     override fun onInterrupt() {}

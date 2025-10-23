@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val help = TextView(this).apply {
-            text = "Grant Accessibility permission (required). Add package names to block (e.g. com.instagram.android)."
+            text = "Add the apps you want to ALLOW. All others will be blocked."
         }
         root.addView(help)
 
@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
         root.addView(addBtn)
 
         listView = ListView(this)
-        adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, prefs.getBlocked().toMutableList())
+        adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, prefs.getAllowed().toMutableList())
         listView.adapter = adapter
         root.addView(listView)
 
@@ -65,13 +65,13 @@ class MainActivity : AppCompatActivity() {
             val input = EditText(this)
             input.inputType = InputType.TYPE_CLASS_TEXT
             AlertDialog.Builder(this)
-                .setTitle("Block package")
-                .setMessage("Enter full package name (e.g. com.facebook.katana)")
+                .setTitle("Add allowed package")
+                .setMessage("Enter full package name (e.g. com.google.android.youtube)")
                 .setView(input)
                 .setPositiveButton("Add") { _, _ ->
                     val pkg = input.text.toString().trim()
                     if (pkg.isNotEmpty()) {
-                        prefs.addBlocked(pkg)
+                        prefs.addAllowed(pkg)
                         refreshList()
                     }
                 }
@@ -85,7 +85,7 @@ class MainActivity : AppCompatActivity() {
                 .setTitle("Remove blocked package?")
                 .setMessage(pkg)
                 .setPositiveButton("Remove") { _, _ ->
-                    prefs.removeBlocked(pkg)
+                    prefs.removeAllowed(pkg)
                     refreshList()
                 }
                 .setNegativeButton("Cancel", null)
@@ -96,7 +96,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun refreshList() {
         adapter.clear()
-        adapter.addAll(prefs.getBlocked().toList())
+        adapter.addAll(prefs.getAllowed().toList())
         adapter.notifyDataSetChanged()
     }
 }
