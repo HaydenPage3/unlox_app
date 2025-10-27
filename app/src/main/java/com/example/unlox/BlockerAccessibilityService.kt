@@ -32,14 +32,7 @@ class BlockerAccessibilityService : AccessibilityService() {
 
             // Block if NOT in whitelist
             if (!prefs.isAllowed(pkg)) {
-                if (lastShownPackage != pkg) {
-                    lastShownPackage = pkg
-                    showBlockScreen(pkg)
-                }
-            } else {
-                if (lastShownPackage == pkg) {
-                    lastShownPackage = null
-                }
+                showBlockScreen(pkg)
             }
         }
     }
